@@ -6,6 +6,12 @@ import java.util.*;
  
 /**
  * This is the chat server program.
+ * The ChatServer class starts the server,
+ * listening on a specific port.
+ * When a new client gets connected,
+ * an instance of UserThread is created to serve that client. 
+ * Since each connection is processed in a separate thread,
+ * the server is able to handle multiple clients at the same time.
  * Press Ctrl + C to terminate the program.
  *
  * @author Northern City
