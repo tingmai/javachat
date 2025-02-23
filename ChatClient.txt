@@ -1,17 +1,8 @@
-package javachat.client;
- 
+package java_console_chat;
+
 import java.net.*;
 import java.io.*;
- 
-/**
- * This is the chat client program.
-   ReadThread is responsible for reading input from the server and 
-   printing it to the console repeatedly, 
-   until the client disconnects.
- * Type 'bye' to terminte the program.
- *
- * @author Northern City
- */
+
 public class ChatClient {
     private String hostname;
     private int port;
@@ -58,4 +49,88 @@ public class ChatClient {
         client.execute();
     }
 }
+
+
+class ReadThread extends Thread {
+    private BufferedReader reader;
+    private Socket socket;
+    private ChatClient client;
+ 
+    public ReadThread(Socket socket, ChatClient client) {
+        this.socket = socket;
+        this.client = client;
+ 
+        try {
+            InputStream input = socket.getInputStream();
+            reader = new BufferedReader(new InputStreamReader(input));
+        } catch (IOException ex) {
+            System.out.println("Error getting input stream: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+ 
+    public void run() {
+        while (true) {
+            try {
+                String response = reader.readLine();
+                System.out.println("\n" + response);
+ 
+                // prints the username after displaying the server's message
+                if (client.getUserName() != null) {
+                    System.out.print("[" + client.getUserName() + "]: ");
+                }
+            } catch (IOException ex) {
+                System.out.println("Error reading from server: " + ex.getMessage());
+                ex.printStackTrace();
+                break;
+            }
+        }
+    }
+}
+
+class WriteThread extends Thread {
+    private PrintWriter writer;
+    private Socket socket;
+    private ChatClient client;
+ 
+    public WriteThread(Socket socket, ChatClient client) {
+        this.socket = socket;
+        this.client = client;
+ 
+        try {
+            OutputStream output = socket.getOutputStream();
+            writer = new PrintWriter(output, true);
+        } catch (IOException ex) {
+            System.out.println("Error getting output stream: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+ 
+    public void run() {
+ 
+        Console console = System.console();
+ 
+        String userName = console.readLine("\nEnter your name: ");
+        client.setUserName(userName);
+        writer.println(userName);
+ 
+        String text;
+ 
+        do {
+            text = console.readLine("[" + userName + "]: ");
+            writer.println(text);
+ 
+        } while (!text.equals("bye"));
+ 
+        try {
+            socket.close();
+        } catch (IOException ex) {
+ 
+            System.out.println("Error writing to server: " + ex.getMessage());
+        }
+    }
+}
+
+
+
 
